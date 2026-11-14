@@ -58,7 +58,7 @@ frame.addEventListener('load',()=>{
     clearTimeout(submitTimer);
     submitted=false;btn.disabled=false;btn.textContent='CONFERMA ISCRIZIONE';
     form.hidden=true;success.hidden=false;
-    successText.textContent=lastSummary+'. Riceverai una conferma via e-mail.';
+    successText.textContent=lastSummary+'. Il posto è riservato temporaneamente: completa il pagamento seguendo le istruzioni ricevute via e-mail.';
     success.scrollIntoView({behavior:'smooth',block:'center'})
   },700)
 });
@@ -74,7 +74,7 @@ window.addEventListener('message',e=>{
     return
   }
   form.hidden=true;success.hidden=false;
-  successText.textContent=lastSummary+'. Riceverai una conferma via e-mail.';
+  successText.textContent=lastSummary+'. Il posto è riservato temporaneamente: completa il pagamento seguendo le istruzioni ricevute via e-mail.';
   success.scrollIntoView({behavior:'smooth',block:'center'})
 });
 
