@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#294c3b">
+  <meta name="description" content="Iscrizione ai Christmas Atelier di Stravaganze Floreali">
+  <title>Christmas Atelier · Stravaganze Floreali</title>
+  <link rel="stylesheet" href="./styles.css?v=1">
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="brand">STRAVAGANZE FLOREALI</div>
+    <p class="eyebrow">CHRISTMAS ATELIER 2026</p>
+    <h1>Un pomeriggio creativo tutto per te.</h1>
+    <p class="lead">Scegli uno o più workshop natalizi, compila l’iscrizione e riceverai la conferma via e-mail.</p>
+  </div>
+</header>
+
+<main>
+<form id="registrationForm" class="card" method="post" target="submitFrame" novalidate>
+  <input type="hidden" name="action" value="register">
+  <input type="hidden" name="quota" id="quotaField" value="0">
+  <input type="hidden" name="workshopsText" id="workshopsText" value="">
+  <input class="honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+  <section>
+    <div class="section-title"><span>1</span><div><h2>I tuoi dati</h2><p>Ci servono per gestire l’iscrizione e le comunicazioni di servizio.</p></div></div>
+    <div class="grid two">
+      <label class="field"><span>Nome e cognome *</span><input name="nome" autocomplete="name" maxlength="120" required></label>
+      <label class="field"><span>Telefono *</span><input name="telefono" type="tel" autocomplete="tel" maxlength="50" required></label>
+      <label class="field full"><span>E-mail *</span><input name="email" type="email" autocomplete="email" maxlength="180" required></label>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title"><span>2</span><div><h2>Scegli i workshop</h2><p>Puoi partecipare a una, due o tutte e tre le date.</p></div></div>
+    <div class="workshops">
+      <label class="workshop-card">
+        <input type="checkbox" name="w2211" value="1" data-workshop="22 novembre 2026 — Corona dell’Avvento">
+        <span class="check" aria-hidden="true"></span>
+        <span><b>22 novembre 2026</b><strong>Corona dell’Avvento</strong><small>15:30–18:00 · Materiali inclusi</small></span>
+      </label>
+      <label class="workshop-card">
+        <input type="checkbox" name="w0512" value="1" data-workshop="5 dicembre 2026 — Corona fuori porta">
+        <span class="check" aria-hidden="true"></span>
+        <span><b>5 dicembre 2026</b><strong>Corona fuori porta</strong><small>15:30–18:00 · Materiali inclusi</small></span>
+      </label>
+      <label class="workshop-card">
+        <input type="checkbox" name="w1912" value="1" data-workshop="19 dicembre 2026 — Centrotavola natalizio">
+        <span class="check" aria-hidden="true"></span>
+        <span><b>19 dicembre 2026</b><strong>Centrotavola natalizio</strong><small>15:30–18:00 · Materiali inclusi</small></span>
+      </label>
+    </div>
+
+    <div class="price-box" aria-live="polite">
+      <div><small>Quota iscrizione</small><strong id="priceValue">—</strong></div>
+      <p>1 data 60 € · 2 date 100 € · 3 date 150 €</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title"><span>3</span><div><h2>Privacy</h2><p>Informativa relativa alla gestione dell’iscrizione.</p></div></div>
+    <div class="privacy-copy">
+      <p><b>Titolare del trattamento:</b> Stravaganze Floreali di Sara Redavid. Contatto privacy: +39 334 2531484.</p>
+      <p>I dati forniti (nome, recapiti, iscrizione e informazioni di pagamento) sono trattati per gestire prenotazione, organizzazione e partecipazione ai workshop, adempimenti amministrativi e fiscali e comunicazioni di servizio. Le basi giuridiche sono l’esecuzione del contratto o di misure precontrattuali (art. 6.1.b GDPR) e gli obblighi di legge (art. 6.1.c GDPR).</p>
+      <p>I dati possono essere trattati da collaboratori e fornitori autorizzati ove necessario e sono conservati per il tempo necessario alla gestione dei corsi e, per i documenti soggetti a obblighi di legge, per i termini previsti dalla normativa. Puoi chiedere accesso, rettifica, cancellazione nei casi consentiti, limitazione, opposizione e portabilità ove applicabile, e proporre reclamo al Garante per la protezione dei dati personali.</p>
+      <p>Eventuali fotografie o video riconoscibili destinati alla pubblicazione richiederanno una specifica autorizzazione separata.</p>
+    </div>
+    <label class="consent required-consent">
+      <input type="checkbox" name="privacy" value="SI" required>
+      <span>Dichiaro di aver letto l’informativa sul trattamento dei dati personali. *</span>
+    </label>
+    <label class="consent">
+      <input type="checkbox" name="marketing" value="SI">
+      <span>Acconsento a ricevere tramite e-mail o messaggi informazioni su futuri workshop, eventi e iniziative di Stravaganze Floreali. Il consenso è facoltativo e revocabile in qualsiasi momento.</span>
+    </label>
+  </section>
+
+  <section class="payment-note">
+    <h2>Pagamento</h2>
+    <p>La prenotazione viene registrata come <b>da saldare</b>. Riceverai le indicazioni per il pagamento da Stravaganze Floreali. È possibile concordare anche il pagamento in contanti.</p>
+  </section>
+
+  <div id="formError" class="message error" hidden></div>
+  <button class="submit-btn" id="submitBtn" type="submit">CONFERMA ISCRIZIONE</button>
+  <p class="small-note">I dati vengono inviati al nostro archivio privato Google e non sono salvati su GitHub.</p>
+</form>
+
+<section id="successCard" class="card success-card" hidden>
+  <div class="success-icon">✓</div>
+  <p class="eyebrow">ISCRIZIONE RICEVUTA</p>
+  <h2>Grazie! Ci vediamo al Christmas Atelier.</h2>
+  <p id="successText"></p>
+  <p class="success-help">Controlla anche la cartella Spam/Promozioni per la mail di conferma.</p>
+  <button class="secondary-btn" id="newRegistration" type="button">Nuova iscrizione</button>
+</section>
+</main>
+
+<iframe name="submitFrame" id="submitFrame" hidden title="Invio iscrizione"></iframe>
+<script src="./config.js?v=1"></script>
+<script src="./app.js?v=1"></script>
+</body>
+</html>
