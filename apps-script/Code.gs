@@ -35,7 +35,15 @@ function doPost(e) {
 }
 
 function doGet() {
-  return text_('Stravaganze Corsi backend attivo');
+  const props = PropertiesService.getScriptProperties();
+  const paymentConfigured = Boolean(
+    props.getProperty('PAYMENT_BENEFICIARY') &&
+    props.getProperty('PAYMENT_IBAN')
+  );
+  return text_(
+    'Stravaganze Corsi backend v3 - pagamento ' +
+    (paymentConfigured ? 'configurato' : 'NON configurato')
+  );
 }
 
 function register_(p) {
