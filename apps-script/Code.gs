@@ -7,6 +7,7 @@
  * PAYMENT_BENEFICIARY     = intestatario del conto
  * PAYMENT_IBAN            = IBAN per il bonifico
  * PAYMENT_BIC             = BIC/SWIFT opzionale
+ * PAYMENT_BANK_NAME       = nome banca opzionale
  * PAYMENT_DEADLINE_HOURS  = ore entro cui pagare (default 24)
  *
  * Il foglio resta privato. Nessuna credenziale bancaria viene salvata nel repository GitHub.
@@ -17,7 +18,7 @@ const HEADERS = [
   'Data registrazione','ID','Nome e cognome','Telefono','E-mail',
   '22 novembre','5 dicembre','19 dicembre','Workshop scelti',
   'Quota EUR','Stato pagamento','Metodo pagamento','Data pagamento',
-  'Privacy','Marketing','Scadenza pagamento'
+  'Privacy','Marketing','Scadenza pagamento','Causale pagamento'
 ];
 
 function doPost(e) {
@@ -52,6 +53,11 @@ function register_(p) {
     w0512 ? '5 dicembre 2026 — Corona fuori porta' : '',
     w1912 ? '19 dicembre 2026 — Centrotavola natalizio' : ''
   ].filter(Boolean);
+  const moduleNumbers = [
+    w2211 ? '1' : '',
+    w0512 ? '2' : '',
+    w1912 ? '3' : ''
+  ].filter(Boolean);
 
   // La quota viene sempre ricalcolata dal server: non ci fidiamo del valore inviato dal browser.
   const expectedQuota = selected.length === 1 ? 60 : selected.length === 2 ? 100 : selected.length === 3 ? 150 : 0;
@@ -85,12 +91,12 @@ function register_(p) {
     const id = Utilities.getUuid();
     const now = new Date();
     const deadline = new Date(now.getTime() + payment.deadlineHours * 60 * 60 * 1000);
-    const causale = paymentReference_(nome,id);
+    const causale = paymentReference_(nome,moduleNumbers);
     sh.appendRow([
       now,id,nome,telefono,email,
       w2211?'SI':'NO',w0512?'SI':'NO',w1912?'SI':'NO',selected.join(' | '),
       expectedQuota,'In attesa pagamento','Bonifico','',
-      'SI',marketing,deadline
+      'SI',marketing,deadline,causale
     ]);
 
     const notify = props.getProperty('NOTIFY_EMAIL');
@@ -141,13 +147,15 @@ function paymentConfig_(props) {
     beneficiary: clean_(props.getProperty('PAYMENT_BENEFICIARY'),160),
     iban: clean_(props.getProperty('PAYMENT_IBAN'),80).replace(/\s+/g,' ').toUpperCase(),
     bic: clean_(props.getProperty('PAYMENT_BIC'),40).toUpperCase(),
+    bankName: clean_(props.getProperty('PAYMENT_BANK_NAME'),180),
     deadlineHours: Number.isFinite(hours) ? Math.min(168,Math.max(1,hours)) : 24
   };
 }
 
-function paymentReference_(nome,id) {
+function paymentReference_(nome,moduleNumbers) {
   const safeName = String(nome||'').replace(/[^a-zA-ZÀ-ÿ0-9 ]/g,'').trim().replace(/\s+/g,' ');
-  return 'CHRISTMAS ATELIER - ' + safeName + ' - ' + String(id||'').slice(0,8).toUpperCase();
+  const modules = (moduleNumbers||[]).filter(Boolean).join(',');
+  return 'Stravaganze Floreali – Corso Natalizio Modulo ' + modules + ' ' + safeName;
 }
 
 function paymentInstructionsHtml_(payment,amount,causale,deadlineText) {
@@ -156,6 +164,7 @@ function paymentInstructionsHtml_(payment,amount,causale,deadlineText) {
     '<p style="margin:0">'+
       '<b>Importo:</b> '+amount+' €<br>'+
       '<b>Intestatario:</b> '+html_(payment.beneficiary)+'<br>'+
+      (payment.bankName ? '<b>Banca:</b> '+html_(payment.bankName)+'<br>' : '')+
       '<b>IBAN:</b> '+html_(payment.iban)+'<br>'+
       (payment.bic ? '<b>BIC/SWIFT:</b> '+html_(payment.bic)+'<br>' : '')+
       '<b>Causale:</b> '+html_(causale)+'<br>'+
