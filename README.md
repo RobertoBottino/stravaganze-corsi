@@ -91,3 +91,12 @@ Per la Fase 1 non esiste un pannello admin pubblico: Sara gestisce iscritti e pa
 Le iscrizioni nascono con stato **Da saldare**. Il pagamento viene gestito successivamente tramite bonifico o contanti.
 
 Una futura Fase 2 potrà aggiungere payment link business senza esporre credenziali nel repository.
+
+
+## Deployment Apps Script attuale
+
+URL collegato al frontend:
+
+`https://script.google.com/macros/s/AKfycbyW-rl31Nuild7plrtuCnsCbY2s26GOt3jc4RqoKslfnLSkGIiQTnUJT5Q2Jsa-wO15/exec`
+
+Se il codice Apps Script viene modificato, ricordarsi di creare/aggiornare il deployment affinché la versione pubblica includa le modifiche.
