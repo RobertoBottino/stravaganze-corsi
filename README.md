@@ -59,6 +59,7 @@ Non servono workflow GitHub Actions.
    - `PAYMENT_BENEFICIARY` = intestatario del conto
    - `PAYMENT_IBAN` = IBAN su cui ricevere il bonifico
    - `PAYMENT_BIC` = BIC/SWIFT, opzionale
+   - `PAYMENT_BANK_NAME` = nome banca, opzionale
    - `PAYMENT_DEADLINE_HOURS` = ore entro cui completare il pagamento, es. `24`
 
 5. **Distribuisci → Nuova distribuzione → App web**
@@ -104,3 +105,16 @@ URL collegato al frontend:
 `https://script.google.com/macros/s/AKfycbyW-rl31Nuild7plrtuCnsCbY2s26GOt3jc4RqoKslfnLSkGIiQTnUJT5Q2Jsa-wO15/exec`
 
 Se il codice Apps Script viene modificato, ricordarsi di creare/aggiornare il deployment affinché la versione pubblica includa le modifiche.
+
+
+## Numerazione moduli per la causale
+
+- Modulo 1 = 22 novembre 2026 — Corona dell'Avvento
+- Modulo 2 = 5 dicembre 2026 — Corona fuori porta
+- Modulo 3 = 19 dicembre 2026 — Centrotavola natalizio
+
+Formato causale generato automaticamente:
+
+`Stravaganze Floreali – Corso Natalizio Modulo 1,3 Nome Cognome`
+
+La combinazione dei numeri dipende dai workshop selezionati dal partecipante.
