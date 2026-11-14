@@ -48,10 +48,16 @@ form.addEventListener('submit',e=>{
   },15000)
 });
 
-frame.addEventListener('load',()=>{
-  if(!submitted)return;
+window.addEventListener('message',e=>{
+  if(e.source!==frame.contentWindow)return;
+  const data=e.data;
+  if(!data||data.type!=='sf-course-submit'||!submitted)return;
   clearTimeout(submitTimer);
   submitted=false;btn.disabled=false;btn.textContent='CONFERMA ISCRIZIONE';
+  if(!data.ok){
+    showError(data.message||'Non è stato possibile registrare l’iscrizione. Riprova.');
+    return
+  }
   form.hidden=true;success.hidden=false;
   successText.textContent=lastSummary+'. Riceverai una conferma via e-mail.';
   success.scrollIntoView({behavior:'smooth',block:'center'})
