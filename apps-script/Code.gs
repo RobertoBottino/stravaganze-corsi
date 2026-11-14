@@ -3,9 +3,13 @@
  *
  * Script Properties richieste:
  * SHEET_ID     = ID del Google Sheet privato
- * NOTIFY_EMAIL = e-mail che riceve le nuove iscrizioni
+ * NOTIFY_EMAIL           = e-mail che riceve le nuove iscrizioni
+ * PAYMENT_BENEFICIARY     = intestatario del conto
+ * PAYMENT_IBAN            = IBAN per il bonifico
+ * PAYMENT_BIC             = BIC/SWIFT opzionale
+ * PAYMENT_DEADLINE_HOURS  = ore entro cui pagare (default 24)
  *
- * Il foglio resta privato. Nessuna password o token va nel repository GitHub.
+ * Il foglio resta privato. Nessuna credenziale bancaria viene salvata nel repository GitHub.
  */
 
 const SHEET_NAME = 'Iscrizioni';
@@ -13,7 +17,7 @@ const HEADERS = [
   'Data registrazione','ID','Nome e cognome','Telefono','E-mail',
   '22 novembre','5 dicembre','19 dicembre','Workshop scelti',
   'Quota EUR','Stato pagamento','Metodo pagamento','Data pagamento',
-  'Privacy','Marketing'
+  'Privacy','Marketing','Scadenza pagamento'
 ];
 
 function doPost(e) {
@@ -60,6 +64,11 @@ function register_(p) {
   const sheetId = props.getProperty('SHEET_ID');
   if (!sheetId) throw new Error('SHEET_ID non configurato');
 
+  const payment = paymentConfig_(props);
+  if (!payment.iban || !payment.beneficiary) {
+    throw new Error('Coordinate di pagamento non configurate');
+  }
+
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);
   try {
@@ -75,42 +84,84 @@ function register_(p) {
 
     const id = Utilities.getUuid();
     const now = new Date();
+    const deadline = new Date(now.getTime() + payment.deadlineHours * 60 * 60 * 1000);
+    const causale = paymentReference_(nome,id);
     sh.appendRow([
       now,id,nome,telefono,email,
       w2211?'SI':'NO',w0512?'SI':'NO',w1912?'SI':'NO',selected.join(' | '),
-      expectedQuota,'Da saldare','Da definire','',
-      'SI',marketing
+      expectedQuota,'In attesa pagamento','Bonifico','',
+      'SI',marketing,deadline
     ]);
 
     const notify = props.getProperty('NOTIFY_EMAIL');
+    const deadlineText = Utilities.formatDate(deadline, Session.getScriptTimeZone() || 'Europe/Rome', 'dd/MM/yyyy HH:mm');
+    const paymentHtml = paymentInstructionsHtml_(payment,expectedQuota,causale,deadlineText);
+
     if (notify) {
       MailApp.sendEmail({
         to: notify,
         subject: 'Nuova iscrizione Christmas Atelier — ' + nome,
         htmlBody:
-          '<p><b>Nuova iscrizione ricevuta</b></p>'+
+          '<p style="font-size:18px"><b>Nuova iscrizione ricevuta</b></p>'+
           '<p><b>'+html_(nome)+'</b><br>'+html_(telefono)+'<br>'+html_(email)+'</p>'+
           '<p>'+selected.map(html_).join('<br>')+'</p>'+
-          '<p><b>Quota: '+expectedQuota+' €</b><br>Stato: da saldare</p>'
+          '<p><b>Quota: '+expectedQuota+' €</b><br>'+
+          '<b>Stato:</b> in attesa pagamento<br>'+
+          '<b>Scadenza pagamento:</b> '+html_(deadlineText)+'<br>'+
+          '<b>Causale:</b> '+html_(causale)+'</p>'+
+          '<p>Il posto sarà confermato alla ricezione del pagamento.</p>'
       });
     }
 
     MailApp.sendEmail({
       to: email,
-      subject: 'Conferma iscrizione Christmas Atelier — Stravaganze Floreali',
+      subject: 'Christmas Atelier — completa il pagamento per confermare il posto',
       htmlBody:
-        '<p>Ciao '+html_(nome)+',</p>'+
-        '<p>abbiamo ricevuto la tua iscrizione al <b>Christmas Atelier di Stravaganze Floreali</b>.</p>'+
-        '<p>'+selected.map(html_).join('<br>')+'</p>'+
-        '<p><b>Quota: '+expectedQuota+' €</b></p>'+
-        '<p>La prenotazione risulta <b>da saldare</b>. Riceverai le indicazioni per il pagamento da Stravaganze Floreali.</p>'+
-        '<p>A presto! 🎄</p>'
+        '<div style="font-family:Arial,sans-serif;color:#26312b;line-height:1.55;max-width:620px">'+
+          '<p>Ciao '+html_(nome)+',</p>'+
+          '<p>abbiamo ricevuto la tua iscrizione al <b>Christmas Atelier di Stravaganze Floreali</b>.</p>'+
+          '<p>'+selected.map(function(x){return '🎄 '+html_(x)}).join('<br>')+'</p>'+
+          '<p>La tua richiesta è stata registrata e il posto è <b>riservato temporaneamente</b>.</p>'+
+          paymentHtml+
+          '<p>Il posto sarà <b>confermato alla ricezione del pagamento</b>. Se il pagamento non viene ricevuto entro la scadenza indicata, la disponibilità del posto non può essere garantita.</p>'+
+          '<p>Per qualsiasi dubbio puoi rispondere direttamente a questa e-mail.</p>'+
+          '<p>A presto!<br><b>Stravaganze Floreali</b> 🎄</p>'+
+        '</div>'
     });
 
     return;
   } finally {
     lock.releaseLock();
   }
+}
+
+function paymentConfig_(props) {
+  const hours = Number(props.getProperty('PAYMENT_DEADLINE_HOURS') || 24);
+  return {
+    beneficiary: clean_(props.getProperty('PAYMENT_BENEFICIARY'),160),
+    iban: clean_(props.getProperty('PAYMENT_IBAN'),80).replace(/\s+/g,' ').toUpperCase(),
+    bic: clean_(props.getProperty('PAYMENT_BIC'),40).toUpperCase(),
+    deadlineHours: Number.isFinite(hours) ? Math.min(168,Math.max(1,hours)) : 24
+  };
+}
+
+function paymentReference_(nome,id) {
+  const safeName = String(nome||'').replace(/[^a-zA-ZÀ-ÿ0-9 ]/g,'').trim().replace(/\s+/g,' ');
+  return 'CHRISTMAS ATELIER - ' + safeName + ' - ' + String(id||'').slice(0,8).toUpperCase();
+}
+
+function paymentInstructionsHtml_(payment,amount,causale,deadlineText) {
+  return '<div style="background:#f0f5ed;border:1px solid #d6e0d2;border-radius:12px;padding:16px;margin:18px 0">'+
+    '<p style="margin:0 0 10px"><b>Pagamento richiesto per confermare il posto</b></p>'+
+    '<p style="margin:0">'+
+      '<b>Importo:</b> '+amount+' €<br>'+
+      '<b>Intestatario:</b> '+html_(payment.beneficiary)+'<br>'+
+      '<b>IBAN:</b> '+html_(payment.iban)+'<br>'+
+      (payment.bic ? '<b>BIC/SWIFT:</b> '+html_(payment.bic)+'<br>' : '')+
+      '<b>Causale:</b> '+html_(causale)+'<br>'+
+      '<b>Da effettuare entro:</b> '+html_(deadlineText)+
+    '</p>'+
+  '</div>';
 }
 
 function isRecentDuplicate_(sh,email,telefono,workshops) {
