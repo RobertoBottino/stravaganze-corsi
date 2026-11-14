@@ -16,7 +16,7 @@ Web app pubblica per le iscrizioni ai workshop di Stravaganze Floreali.
 - Google Sheet privato;
 - e-mail automatica a Stravaganze Floreali;
 - e-mail di conferma automatica al partecipante;
-- stato iniziale pagamento: **Da saldare**;
+- stato iniziale pagamento: **In attesa pagamento**;
 - nessuna password, token, API key o credenziale bancaria nel repository pubblico.
 
 ## Google Sheet già creato
@@ -56,6 +56,10 @@ Non servono workflow GitHub Actions.
 
    - `SHEET_ID` = `1RlkoEpV1SQpfQmMhR5oSfw0yTLOJnH-zzn8jqBTSDxA`
    - `NOTIFY_EMAIL` = l'indirizzo a cui devono arrivare le notifiche delle nuove iscrizioni
+   - `PAYMENT_BENEFICIARY` = intestatario del conto
+   - `PAYMENT_IBAN` = IBAN su cui ricevere il bonifico
+   - `PAYMENT_BIC` = BIC/SWIFT, opzionale
+   - `PAYMENT_DEADLINE_HOURS` = ore entro cui completare il pagamento, es. `24`
 
 5. **Distribuisci → Nuova distribuzione → App web**
 6. **Esegui come:** Me
@@ -88,7 +92,7 @@ Per la Fase 1 non esiste un pannello admin pubblico: Sara gestisce iscritti e pa
 
 ## Pagamenti — Fase 1
 
-Le iscrizioni nascono con stato **Da saldare**. Il pagamento viene gestito successivamente tramite bonifico o contanti.
+Le iscrizioni nascono con stato **In attesa pagamento**. La mail contiene importo, intestatario, IBAN, causale univoca e scadenza. Il posto viene confermato alla ricezione del pagamento. Le coordinate bancarie restano nelle Proprietà script di Google Apps Script e non vengono salvate nel repository pubblico.
 
 Una futura Fase 2 potrà aggiungere payment link business senza esporre credenziali nel repository.
 
