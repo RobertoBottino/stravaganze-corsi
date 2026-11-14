@@ -19,12 +19,13 @@ const HEADERS = [
 function doPost(e) {
   try {
     const p = e && e.parameter ? e.parameter : {};
-    if (String(p.action || '') !== 'register') return text_('Richiesta non valida');
-    if (String(p.website || '').trim()) return text_('OK'); // honeypot anti-spam
-    return register_(p);
+    if (String(p.action || '') !== 'register') return responsePage_(false,'Richiesta non valida');
+    if (String(p.website || '').trim()) return responsePage_(true,'OK'); // honeypot anti-spam
+    register_(p);
+    return responsePage_(true,'OK');
   } catch (err) {
     console.error(err);
-    return text_('Errore: ' + err.message);
+    return responsePage_(false,'Errore: ' + err.message);
   }
 }
 
@@ -69,7 +70,7 @@ function register_(p) {
 
     // Evita il doppio invio accidentale dello stesso form nel giro di pochi minuti.
     if (isRecentDuplicate_(sh,email,telefono,selected.join(' | '))) {
-      return text_('OK');
+      return;
     }
 
     const id = Utilities.getUuid();
@@ -106,7 +107,7 @@ function register_(p) {
         '<p>A presto! 🎄</p>'
     });
 
-    return text_('OK');
+    return;
   } finally {
     lock.releaseLock();
   }
@@ -144,6 +145,19 @@ function html_(v) {
   return String(v||'').replace(/[&<>"']/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
   });
+}
+
+function responsePage_(ok,message) {
+  const payload = JSON.stringify({
+    type:'sf-course-submit',
+    ok:Boolean(ok),
+    message:String(message||'')
+  }).replace(/</g,'\\u003c');
+  return HtmlService.createHtmlOutput(
+    '<!doctype html><meta charset="utf-8"><script>'+
+    'window.parent.postMessage('+payload+', "*");'+
+    '<\/script>'
+  );
 }
 
 function text_(s) {
