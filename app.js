@@ -48,6 +48,21 @@ form.addEventListener('submit',e=>{
   },15000)
 });
 
+
+frame.addEventListener('load',()=>{
+  if(!submitted)return;
+  // Compatibilità con il primo deployment Apps Script, che restituisce solo testo.
+  // Se una versione più nuova invia postMessage, quel risultato arriva prima.
+  setTimeout(()=>{
+    if(!submitted)return;
+    clearTimeout(submitTimer);
+    submitted=false;btn.disabled=false;btn.textContent='CONFERMA ISCRIZIONE';
+    form.hidden=true;success.hidden=false;
+    successText.textContent=lastSummary+'. Riceverai una conferma via e-mail.';
+    success.scrollIntoView({behavior:'smooth',block:'center'})
+  },700)
+});
+
 window.addEventListener('message',e=>{
   if(e.source!==frame.contentWindow)return;
   const data=e.data;
