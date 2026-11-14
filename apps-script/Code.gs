@@ -126,18 +126,29 @@ function register_(p) {
     const paymentHtml = paymentInstructionsHtml_(payment,expectedQuota,causale,deadlineText);
 
     if (notify) {
+      const sheetUrl = ss.getUrl();
+      const registrationsUrl = sheetUrl + '#gid=' + sh.getSheetId();
+      const summarySheet = ss.getSheetByName('Riepilogo');
+      const summaryUrl = summarySheet ? sheetUrl + '#gid=' + summarySheet.getSheetId() : sheetUrl;
+
       MailApp.sendEmail({
         to: notify,
         subject: 'Nuova iscrizione Christmas Atelier — ' + nome,
         htmlBody:
-          '<p style="font-size:18px"><b>Nuova iscrizione ricevuta</b></p>'+
-          '<p><b>'+html_(nome)+'</b><br>'+html_(telefono)+'<br>'+html_(email)+'</p>'+
-          '<p>'+selected.map(html_).join('<br>')+'</p>'+
-          '<p><b>Quota: '+expectedQuota+' €</b><br>'+
-          '<b>Stato:</b> in attesa pagamento<br>'+
-          '<b>Scadenza pagamento:</b> '+html_(deadlineText)+'<br>'+
-          '<b>Causale:</b> '+html_(causale)+'</p>'+
-          '<p>Il posto sarà confermato alla ricezione del pagamento.</p>'
+          '<div style="font-family:Arial,sans-serif;color:#26312b;line-height:1.55;max-width:620px">'+
+            '<p style="font-size:18px"><b>Nuova iscrizione ricevuta</b></p>'+
+            '<p><b>'+html_(nome)+'</b><br>'+html_(telefono)+'<br>'+html_(email)+'</p>'+
+            '<p>'+selected.map(html_).join('<br>')+'</p>'+
+            '<p><b>Quota: '+expectedQuota+' €</b><br>'+
+            '<b>Stato:</b> in attesa pagamento<br>'+
+            '<b>Scadenza pagamento:</b> '+html_(deadlineText)+'<br>'+
+            '<b>Causale:</b> '+html_(causale)+'</p>'+
+            '<p>Il posto sarà confermato alla ricezione del pagamento.</p>'+
+            '<p style="margin-top:20px">'+
+              '<a href="'+html_(registrationsUrl)+'" style="display:inline-block;background:#294c3b;color:#fff;text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:bold;margin-right:8px">Apri elenco iscritti</a>'+
+              '<a href="'+html_(summaryUrl)+'" style="display:inline-block;background:#e6eee3;color:#294c3b;text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:bold">Apri riepilogo</a>'+
+            '</p>'+
+          '</div>'
       });
     }
 
