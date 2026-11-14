@@ -31,6 +31,22 @@ Spreadsheet ID:
 
 Il file è privato e l'ID da solo non concede accesso ai dati.
 
+## Pubblicazione GitHub Pages
+
+Il repository è pubblico ma GitHub Pages va attivato una volta manualmente:
+
+1. Apri **Settings → Pages** del repository.
+2. In **Build and deployment**, scegli **Deploy from a branch**.
+3. Branch: **main**.
+4. Cartella: **/(root)**.
+5. Premi **Save**.
+
+L'indirizzo pubblico sarà:
+
+`https://robertobottino.github.io/stravaganze-corsi/`
+
+Non servono workflow GitHub Actions.
+
 ## Collegamento Apps Script
 
 1. Apri il Google Sheet.
