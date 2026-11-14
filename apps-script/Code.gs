@@ -83,21 +83,35 @@ function register_(p) {
     if (!sh) sh = ss.insertSheet(SHEET_NAME);
     ensureHeaders_(sh);
 
-    // Evita il doppio invio accidentale dello stesso form nel giro di pochi minuti.
-    if (isRecentDuplicate_(sh,email,telefono,selected.join(' | '))) {
-      return;
-    }
-
-    const id = Utilities.getUuid();
+    // Evita righe duplicate, ma NON blocca la mail: se l'utente reinvia entro
+    // pochi minuti, riutilizziamo la registrazione esistente e rimandiamo le istruzioni.
+    const duplicate = findRecentDuplicate_(sh,email,telefono,selected.join(' | '));
     const now = new Date();
-    const deadline = new Date(now.getTime() + payment.deadlineHours * 60 * 60 * 1000);
-    const causale = paymentReference_(nome,moduleNumbers);
-    sh.appendRow([
-      now,id,nome,telefono,email,
-      w2211?'SI':'NO',w0512?'SI':'NO',w1912?'SI':'NO',selected.join(' | '),
-      expectedQuota,'In attesa pagamento','Bonifico','',
-      'SI',marketing,deadline,causale
-    ]);
+    let id,deadline,causale;
+
+    if (duplicate) {
+      id = String(duplicate.values[1] || Utilities.getUuid());
+      const existingDeadline = duplicate.values[15];
+      deadline = existingDeadline instanceof Date && !isNaN(existingDeadline.getTime())
+        ? existingDeadline
+        : new Date(now.getTime() + payment.deadlineHours * 60 * 60 * 1000);
+      causale = paymentReference_(nome,moduleNumbers);
+
+      sh.getRange(duplicate.row,11).setValue('In attesa pagamento');
+      sh.getRange(duplicate.row,12).setValue('Bonifico');
+      sh.getRange(duplicate.row,16).setValue(deadline);
+      sh.getRange(duplicate.row,17).setValue(causale);
+    } else {
+      id = Utilities.getUuid();
+      deadline = new Date(now.getTime() + payment.deadlineHours * 60 * 60 * 1000);
+      causale = paymentReference_(nome,moduleNumbers);
+      sh.appendRow([
+        now,id,nome,telefono,email,
+        w2211?'SI':'NO',w0512?'SI':'NO',w1912?'SI':'NO',selected.join(' | '),
+        expectedQuota,'In attesa pagamento','Bonifico','',
+        'SI',marketing,deadline,causale
+      ]);
+    }
 
     const notify = props.getProperty('NOTIFY_EMAIL');
     const deadlineText = Utilities.formatDate(deadline, Session.getScriptTimeZone() || 'Europe/Rome', 'dd/MM/yyyy HH:mm');
@@ -173,20 +187,24 @@ function paymentInstructionsHtml_(payment,amount,causale,deadlineText) {
   '</div>';
 }
 
-function isRecentDuplicate_(sh,email,telefono,workshops) {
+function findRecentDuplicate_(sh,email,telefono,workshops) {
   const last = sh.getLastRow();
-  if (last < 2) return false;
+  if (last < 2) return null;
   const start = Math.max(2,last-40);
-  const rows = sh.getRange(start,1,last-start+1,9).getValues();
+  const rows = sh.getRange(start,1,last-start+1,17).getValues();
   const now = Date.now();
-  return rows.some(function(r){
+
+  for (let i=rows.length-1;i>=0;i--) {
+    const r = rows[i];
     const when = r[0] instanceof Date ? r[0].getTime() : new Date(r[0]).getTime();
-    return Number.isFinite(when) &&
+    const match = Number.isFinite(when) &&
       now-when < 10*60*1000 &&
       String(r[4]||'').toLowerCase() === String(email||'').toLowerCase() &&
       String(r[3]||'') === String(telefono||'') &&
       String(r[8]||'') === String(workshops||'');
-  });
+    if (match) return {row:start+i,values:r};
+  }
+  return null;
 }
 
 function ensureHeaders_(sh) {
